@@ -685,14 +685,14 @@ function Sticker({ text, color, bg, rot, border, style = {} }) {
       background: bg,
       color,
       border: `3px solid ${border || bg}`,
-      borderRadius: 10,
-      padding: "14px 14px",
-      fontSize: 15,
-      fontWeight: 800,
+      borderRadius: 14,
+      padding: "20px 18px",
+      fontSize: 20,
+      fontWeight: 900,
       lineHeight: 1.4,
-      maxWidth: 160,
+      maxWidth: 220,
       transform: `rotate(${rot}deg)`,
-      boxShadow: "4px 4px 16px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.15)",
+      boxShadow: "6px 6px 22px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.2)",
       fontFamily: "'Inter', sans-serif",
       letterSpacing: 0.2,
       cursor: "default",
@@ -702,9 +702,9 @@ function Sticker({ text, color, bg, rot, border, style = {} }) {
     }}>
       {/* tape strip on top */}
       <div style={{
-        position: "absolute", top: -11, left: "50%", transform: "translateX(-50%)",
-        width: 50, height: 18, background: "rgba(249,115,22,0.4)",
-        borderRadius: 3, backdropFilter: "blur(2px)",
+        position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)",
+        width: 70, height: 24, background: "rgba(249,115,22,0.45)",
+        borderRadius: 4, backdropFilter: "blur(2px)",
       }} />
       {text}
     </div>
@@ -718,7 +718,7 @@ function Stickers() {
     <>
       {/* Left column */}
       <div style={{
-        position: "fixed", left: 0, top: 0, bottom: 0, width: 175,
+        position: "fixed", left: 0, top: 0, bottom: 0, width: 240,
         display: "flex", flexDirection: "column", justifyContent: "space-evenly",
         alignItems: "flex-start", padding: "80px 8px 40px 10px",
         pointerEvents: "none", zIndex: 0,
@@ -730,7 +730,7 @@ function Stickers() {
 
       {/* Right column */}
       <div style={{
-        position: "fixed", right: 0, top: 0, bottom: 0, width: 175,
+        position: "fixed", right: 0, top: 0, bottom: 0, width: 240,
         display: "flex", flexDirection: "column", justifyContent: "space-evenly",
         alignItems: "flex-end", padding: "80px 10px 40px 8px",
         pointerEvents: "none", zIndex: 0,
