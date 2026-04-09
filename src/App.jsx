@@ -671,10 +671,10 @@ const S = {
   root: { minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--bg)", position: "relative", zIndex: 1 },
 
   // Header
-  header: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", borderBottom: "1px solid #181818", background: "rgba(5,5,5,0.95)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 100 },
-  logo: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: 4, color: "var(--red)", textShadow: "0 0 20px rgba(239,68,68,0.5)" },
-  setLabel: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 14, letterSpacing: 3, color: "var(--gray-light)", minWidth: 48, textAlign: "right" },
-  headerBtn: { background: "none", color: "var(--gray-light)", fontSize: 14, padding: "3px 7px", borderRadius: 6, border: "1px solid #202020", cursor: "pointer" },
+  header: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", borderBottom: "1px solid #1e1e1e", background: "rgba(5,5,5,0.95)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 100 },
+  logo: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: 5, color: "var(--orange)", textShadow: "0 0 24px rgba(249,115,22,0.7)" },
+  setLabel: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: 3, color: "var(--gray-light)", minWidth: 52, textAlign: "right" },
+  headerBtn: { background: "none", color: "var(--gray-light)", fontSize: 16, padding: "4px 9px", borderRadius: 6, border: "1px solid #222", cursor: "pointer" },
 
   // Dots
   dotsWrap: { display: "flex", flexDirection: "column", alignItems: "center", gap: 3 },
@@ -685,21 +685,21 @@ const S = {
   dotCount: { fontSize: 8, color: "var(--gray)", letterSpacing: 1, fontFamily: "'Bebas Neue', sans-serif" },
 
   // Screens
-  screen: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 22, padding: "32px 20px" },
-  pageTitle: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 30, letterSpacing: 6, color: "var(--white)" },
-  pageSub: { fontSize: 12, color: "var(--gray-light)", letterSpacing: 0.5, marginTop: -8, textAlign: "center" },
+  screen: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 24, padding: "32px 20px" },
+  pageTitle: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 40, letterSpacing: 7, color: "var(--white)" },
+  pageSub: { fontSize: 15, color: "var(--gray-light)", letterSpacing: 0.5, marginTop: -8, textAlign: "center" },
 
   // Exercise card
-  exerciseCard: { textAlign: "center", background: "#0d0d0d", border: "1px solid #1e1e1e", borderRadius: 20, padding: "28px 40px", width: "100%", maxWidth: 380, transition: "all 0.3s" },
-  exerciseLabel: { fontSize: 9, letterSpacing: 5, color: "var(--gray)", marginBottom: 12, fontFamily: "'Bebas Neue', sans-serif" },
-  exerciseName: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 54, letterSpacing: 3, lineHeight: 1, color: "var(--white)", transition: "color 0.3s" },
-  statPill: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 11, letterSpacing: 2, padding: "5px 12px", borderRadius: 20 },
+  exerciseCard: { textAlign: "center", background: "#0d0d0d", border: "1px solid #222", borderRadius: 20, padding: "32px 40px", width: "100%", maxWidth: 400, transition: "all 0.3s" },
+  exerciseLabel: { fontSize: 11, letterSpacing: 6, color: "var(--orange)", marginBottom: 14, fontFamily: "'Bebas Neue', sans-serif" },
+  exerciseName: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 72, letterSpacing: 3, lineHeight: 1, color: "var(--white)", transition: "color 0.3s" },
+  statPill: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 14, letterSpacing: 2, padding: "7px 16px", borderRadius: 20 },
 
   // Buttons
-  primaryBtn: { color: "#fff", fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: 5, padding: "18px 56px", borderRadius: 14, width: "100%", maxWidth: 380, transition: "all 0.2s", border: "none" },
-  ghostBtn: { background: "none", color: "var(--gray-light)", fontSize: 13, cursor: "pointer", letterSpacing: 0.5, padding: "6px 4px", border: "none" },
-  hint: { fontSize: 12, color: "var(--gray)", textAlign: "center", lineHeight: 1.8 },
-  errorBox: { background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "#fca5a5", maxWidth: 380, textAlign: "center" },
+  primaryBtn: { color: "#fff", fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: 5, padding: "22px 56px", borderRadius: 14, width: "100%", maxWidth: 400, transition: "all 0.2s", border: "none" },
+  ghostBtn: { background: "none", color: "var(--gray-light)", fontSize: 16, cursor: "pointer", letterSpacing: 1, padding: "6px 4px", border: "none" },
+  hint: { fontSize: 14, color: "var(--gray)", textAlign: "center", lineHeight: 1.8 },
+  errorBox: { background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.3)", borderRadius: 10, padding: "12px 16px", fontSize: 14, color: "#fdba74", maxWidth: 400, textAlign: "center" },
 
   // Active screen orb
   orbContainer: { position: "relative", width: 180, height: 180, display: "flex", alignItems: "center", justifyContent: "center" },
@@ -708,39 +708,39 @@ const S = {
   orbRing2: { position: "absolute", width: 130, height: 130, borderRadius: "50%", border: "1px solid", animation: "pulse-ring 1.8s ease-out infinite 0.6s", zIndex: 0 },
   waveContainer: { position: "absolute", bottom: -28, display: "flex", alignItems: "flex-end", gap: 3, height: 52 },
   waveBar: { width: 4, borderRadius: 4, minHeight: 6, animation: "wave 0.8s ease-in-out infinite alternate" },
-  modeLabel: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: 3, marginTop: 18, textAlign: "center" },
-  setTimer: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 80, letterSpacing: 4, color: "var(--white)", lineHeight: 1 },
-  activeHint: { fontSize: 13, color: "var(--gray)" },
-  stopBtn: { background: "transparent", color: "var(--gray)", fontFamily: "'Bebas Neue', sans-serif", fontSize: 12, letterSpacing: 3, padding: "10px 24px", borderRadius: 8, border: "1px solid #252525", marginTop: 4 },
+  modeLabel: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 24, letterSpacing: 4, marginTop: 18, textAlign: "center" },
+  setTimer: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 100, letterSpacing: 4, color: "var(--white)", lineHeight: 1 },
+  activeHint: { fontSize: 17, color: "var(--gray)" },
+  stopBtn: { background: "transparent", color: "var(--gray)", fontFamily: "'Bebas Neue', sans-serif", fontSize: 15, letterSpacing: 3, padding: "12px 28px", borderRadius: 8, border: "1px solid #2a2a2a", marginTop: 4 },
 
   // Rating overlay (on ActiveScreen)
   ratingOverlay: { position: "absolute", inset: 0, background: "rgba(5,5,5,0.93)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18, padding: 32, zIndex: 10, backdropFilter: "blur(8px)" },
-  ratingOverlayEyebrow: { fontSize: 9, letterSpacing: 5, color: "var(--gray)", fontFamily: "'Bebas Neue', sans-serif" },
-  ratingOverlayScore: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 52, letterSpacing: 7, lineHeight: 1 },
-  ratingOverlayComment: { fontSize: 16, color: "var(--white)", fontStyle: "italic", textAlign: "center", lineHeight: 1.6, maxWidth: 300 },
-  ratingOverlayHint: { fontSize: 10, color: "var(--gray)", letterSpacing: 3, fontFamily: "'Bebas Neue', sans-serif" },
+  ratingOverlayEyebrow: { fontSize: 12, letterSpacing: 5, color: "var(--orange)", fontFamily: "'Bebas Neue', sans-serif" },
+  ratingOverlayScore: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 72, letterSpacing: 7, lineHeight: 1 },
+  ratingOverlayComment: { fontSize: 20, color: "var(--white)", fontStyle: "italic", textAlign: "center", lineHeight: 1.6, maxWidth: 320 },
+  ratingOverlayHint: { fontSize: 13, color: "var(--gray)", letterSpacing: 3, fontFamily: "'Bebas Neue', sans-serif" },
 
   // Rest screen
-  restLabel: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 11, letterSpacing: 7, color: "var(--green)", textShadow: "0 0 16px var(--green-glow)" },
-  restTimerWrap: { position: "relative", width: 200, height: 200, display: "flex", alignItems: "center", justifyContent: "center" },
+  restLabel: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 14, letterSpacing: 8, color: "var(--orange)", textShadow: "0 0 20px var(--orange-glow)" },
+  restTimerWrap: { position: "relative", width: 220, height: 220, display: "flex", alignItems: "center", justifyContent: "center" },
   restSvg: { position: "absolute", top: 0, left: 0, width: "100%", height: "100%" },
   restTimerInner: { display: "flex", flexDirection: "column", alignItems: "center", zIndex: 1 },
-  restNumber: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 78, color: "var(--white)", lineHeight: 1 },
-  restUnit: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 10, letterSpacing: 4, color: "var(--gray-light)", marginTop: -4 },
-  restActions: { display: "flex", flexDirection: "column", gap: 12, width: "100%", maxWidth: 380 },
+  restNumber: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 96, color: "var(--white)", lineHeight: 1 },
+  restUnit: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 13, letterSpacing: 4, color: "var(--orange)", marginTop: -4 },
+  restActions: { display: "flex", flexDirection: "column", gap: 12, width: "100%", maxWidth: 400 },
 
   // Rating card (rest + done screens)
-  ratingCard: { background: "#0d0d0d", border: "1px solid #252525", borderRadius: 14, padding: "16px 24px", textAlign: "center", width: "100%", maxWidth: 380 },
-  ratingLabel: { fontSize: 8, letterSpacing: 4, color: "var(--gray)", marginBottom: 10, fontFamily: "'Bebas Neue', sans-serif" },
-  ratingComment: { fontSize: 13, color: "var(--gray-light)", fontStyle: "italic", marginTop: 8, lineHeight: 1.5 },
+  ratingCard: { background: "#0d0d0d", border: "1px solid #2a2a2a", borderRadius: 14, padding: "18px 28px", textAlign: "center", width: "100%", maxWidth: 400 },
+  ratingLabel: { fontSize: 11, letterSpacing: 4, color: "var(--orange)", marginBottom: 10, fontFamily: "'Bebas Neue', sans-serif" },
+  ratingComment: { fontSize: 16, color: "var(--white)", fontStyle: "italic", marginTop: 8, lineHeight: 1.5 },
 
   // Done screen
-  doneTitle: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 46, letterSpacing: 4, textAlign: "center" },
-  doneStats: { display: "flex", alignItems: "center", background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: 16, overflow: "hidden", width: "100%", maxWidth: 340 },
-  doneStat: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "18px 12px", gap: 4 },
-  doneStatNum: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: 2, lineHeight: 1 },
-  doneStatLabel: { fontSize: 8, letterSpacing: 2, color: "var(--gray)" },
-  doneStatDivider: { width: 1, height: 48, background: "#1a1a1a" },
+  doneTitle: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 56, letterSpacing: 5, textAlign: "center" },
+  doneStats: { display: "flex", alignItems: "center", background: "#0d0d0d", border: "1px solid #1e1e1e", borderRadius: 16, overflow: "hidden", width: "100%", maxWidth: 400 },
+  doneStat: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 12px", gap: 5 },
+  doneStatNum: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, letterSpacing: 2, lineHeight: 1 },
+  doneStatLabel: { fontSize: 10, letterSpacing: 2, color: "var(--gray)" },
+  doneStatDivider: { width: 1, height: 52, background: "#1e1e1e" },
 
   // Schedule
   scheduleScreen: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 14, padding: "24px 16px", overflowY: "auto" },
@@ -761,9 +761,9 @@ const S = {
   historyScreen: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "20px 16px", overflowY: "auto" },
   historyHeader: { width: "100%", maxWidth: 420, display: "flex", flexDirection: "column", alignItems: "center", gap: 12 },
   historyStats: { display: "flex", alignItems: "center", background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: 14, overflow: "hidden", width: "100%" },
-  hStat: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "14px 8px", gap: 3 },
-  hStatNum: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, letterSpacing: 2, lineHeight: 1 },
-  hStatLabel: { fontSize: 7, letterSpacing: 2, color: "var(--gray)" },
+  hStat: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 8px", gap: 4 },
+  hStatNum: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 34, letterSpacing: 2, lineHeight: 1 },
+  hStatLabel: { fontSize: 9, letterSpacing: 2, color: "var(--gray)" },
   hStatDiv: { width: 1, height: 40, background: "#1a1a1a" },
   historyList: { display: "flex", flexDirection: "column", gap: 6, width: "100%", maxWidth: 420 },
   historyDate: { fontSize: 9, letterSpacing: 3, color: "var(--gray)", fontFamily: "'Bebas Neue', sans-serif", marginTop: 8, marginBottom: 4 },
