@@ -371,20 +371,30 @@ function ActiveScreen({ muscle, exercise, isConnected, isSpeaking, setSeconds, o
         </p>
       )}
 
-      {/* Orb */}
+      {/* Orb / Beast image */}
       <div style={S.orbContainer}>
         {isSpeaking && <div style={{ ...S.orbRing, borderColor: muscle.color }} />}
         {isSpeaking && <div style={{ ...S.orbRing2, borderColor: muscle.color }} />}
-        <div style={{
-          ...S.orb,
-          background: isSpeaking
-            ? `radial-gradient(circle at 38% 35%, ${muscle.color}ee, ${muscle.color}88)`
-            : "radial-gradient(circle at 38% 35%, #2a2a2a, #111)",
-          boxShadow: isSpeaking
-            ? `0 0 80px 24px ${muscle.color}55, inset 0 0 30px ${muscle.color}33`
-            : "0 0 20px 4px rgba(255,255,255,0.04)",
-          animation: isSpeaking ? "pulse-red 1.8s ease-in-out infinite" : "none",
-        }} />
+        {isSpeaking ? (
+          <img
+            src="/beast.jpeg"
+            alt="Beast Buddy"
+            style={{
+              ...S.orb,
+              objectFit: "cover",
+              objectPosition: "center top",
+              boxShadow: `0 0 80px 24px ${muscle.color}55`,
+              animation: "pulse-red 1.8s ease-in-out infinite",
+              border: `3px solid ${muscle.color}`,
+            }}
+          />
+        ) : (
+          <div style={{
+            ...S.orb,
+            background: "radial-gradient(circle at 38% 35%, #2a2a2a, #111)",
+            boxShadow: "0 0 20px 4px rgba(255,255,255,0.04)",
+          }} />
+        )}
         {isSpeaking && (
           <div style={S.waveContainer}>
             {[0.2, 0.5, 0.1, 0.7, 0.3, 0.9, 0.4, 0.6, 0.2, 0.8, 0.35, 0.65].map((delay, i) => (
