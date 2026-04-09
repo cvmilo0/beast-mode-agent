@@ -185,6 +185,7 @@ function Coach() {
 
   return (
     <div style={S.root}>
+      <Stickers />
       <header style={S.header}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={S.logo}>BEAST BUDDY</span>
@@ -666,9 +667,85 @@ function MissingAgentId() {
   );
 }
 
+// ─── Stickers ────────────────────────────────────────────────────────────────
+const TYSON_QUOTES = [
+  { text: "Everyone has a plan until they get punched in the mouth.", color: "#f97316", bg: "#fff7ed", rot: -8 },
+  { text: "I'm the best ever. I'm the most brutal and vicious.", color: "#000", bg: "#f97316", rot: 5 },
+  { text: "Fear is your best friend or your worst enemy.", color: "#fff", bg: "#1a1a1a", rot: -6, border: "#f97316" },
+  { text: "Real pain can't be contained in words.", color: "#000", bg: "#facc15", rot: 9 },
+  { text: "I just want to conquer people and their souls.", color: "#fff", bg: "#f97316", rot: -4 },
+  { text: "My power is discombobulatingly devastating.", color: "#000", bg: "#ffffff", rot: 7 },
+  { text: "I'm a dreamer. I have to dream and reach for the stars.", color: "#f97316", bg: "#0d0d0d", rot: -10, border: "#f97316" },
+  { text: "I'm in trouble because I'm normal and slightly arrogant.", color: "#000", bg: "#fed7aa", rot: 6 },
+];
+
+function Sticker({ text, color, bg, rot, border, style = {} }) {
+  return (
+    <div style={{
+      background: bg,
+      color,
+      border: `2px solid ${border || bg}`,
+      borderRadius: 6,
+      padding: "8px 10px",
+      fontSize: 11,
+      fontWeight: 800,
+      lineHeight: 1.35,
+      maxWidth: 110,
+      transform: `rotate(${rot}deg)`,
+      boxShadow: "3px 3px 10px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.15)",
+      fontFamily: "'Inter', sans-serif",
+      letterSpacing: 0.2,
+      cursor: "default",
+      userSelect: "none",
+      position: "relative",
+      ...style,
+    }}>
+      {/* tape strip on top */}
+      <div style={{
+        position: "absolute", top: -8, left: "50%", transform: "translateX(-50%)",
+        width: 36, height: 14, background: "rgba(249,115,22,0.35)",
+        borderRadius: 2, backdropFilter: "blur(2px)",
+      }} />
+      {text}
+    </div>
+  );
+}
+
+function Stickers() {
+  const left  = [0, 2, 4, 6];
+  const right = [1, 3, 5, 7];
+  return (
+    <>
+      {/* Left column */}
+      <div style={{
+        position: "fixed", left: 0, top: 0, bottom: 0, width: 130,
+        display: "flex", flexDirection: "column", justifyContent: "space-evenly",
+        alignItems: "flex-start", padding: "80px 6px 40px 8px",
+        pointerEvents: "none", zIndex: 0,
+      }}>
+        {left.map((i) => (
+          <Sticker key={i} {...TYSON_QUOTES[i]} style={{ marginLeft: TYSON_QUOTES[i].rot < 0 ? 4 : 0 }} />
+        ))}
+      </div>
+
+      {/* Right column */}
+      <div style={{
+        position: "fixed", right: 0, top: 0, bottom: 0, width: 130,
+        display: "flex", flexDirection: "column", justifyContent: "space-evenly",
+        alignItems: "flex-end", padding: "80px 8px 40px 6px",
+        pointerEvents: "none", zIndex: 0,
+      }}>
+        {right.map((i) => (
+          <Sticker key={i} {...TYSON_QUOTES[i]} style={{ marginRight: TYSON_QUOTES[i].rot > 0 ? 4 : 0 }} />
+        ))}
+      </div>
+    </>
+  );
+}
+
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const S = {
-  root: { minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--bg)", position: "relative", zIndex: 1 },
+  root: { minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--bg)", position: "relative", zIndex: 1, paddingLeft: "clamp(0px, calc((100vw - 460px) / 2 - 10px), 130px)", paddingRight: "clamp(0px, calc((100vw - 460px) / 2 - 10px), 130px)" },
 
   // Header
   header: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", borderBottom: "1px solid #1e1e1e", background: "rgba(5,5,5,0.95)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 100 },
