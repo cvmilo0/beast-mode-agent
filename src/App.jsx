@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import confetti from "canvas-confetti";
 import {
   ConversationProvider,
   useConversationControls,
@@ -13,10 +14,10 @@ const REST_SECONDS = 30;
 
 // ─── Muscle Groups ────────────────────────────────────────────────────────────
 const MUSCLES = {
-  chest:     { label: "CHEST",     emoji: "🫁", color: "#e63232", exercises: ["Push-ups", "Bench Press", "Dips"],                  reps: 12 },
+  chest:     { label: "CHEST",     emoji: "🫁", color: "#ef4444", exercises: ["Push-ups", "Bench Press", "Dips"],                  reps: 12 },
   back:      { label: "BACK",      emoji: "🔝", color: "#3b82f6", exercises: ["Pull-ups", "Bent-over Rows", "Lat Pulldown"],        reps: 10 },
   legs:      { label: "LEGS",      emoji: "🦵", color: "#22c55e", exercises: ["Squats", "Lunges", "Romanian Deadlift"],             reps: 15 },
-  shoulders: { label: "SHOULDERS", emoji: "🏋️", color: "#f59e0b", exercises: ["Overhead Press", "Lateral Raises", "Face Pulls"],   reps: 12 },
+  shoulders: { label: "SHOULDERS", emoji: "🏋️", color: "#f97316", exercises: ["Overhead Press", "Lateral Raises", "Face Pulls"],   reps: 12 },
   arms:      { label: "ARMS",      emoji: "💪", color: "#8b5cf6", exercises: ["Bicep Curls", "Tricep Dips", "Hammer Curls"],        reps: 12 },
   fullbody:  { label: "FULL BODY", emoji: "⚡", color: "#ef4444", exercises: ["Burpees", "Thrusters", "Mountain Climbers"],         reps: 10 },
   rest:      { label: "REST",      emoji: "😴", color: "#444444", exercises: [],                                                    reps: 0  },
@@ -27,7 +28,6 @@ const DAY_SHORT = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 // ─── Schedule (localStorage) ──────────────────────────────────────────────────
 const DEFAULT_SCHEDULE = { 0: "chest", 1: "back", 2: "legs", 3: "shoulders", 4: "arms", 5: "fullbody", 6: "rest" };
-
 function loadSchedule() {
   try { return JSON.parse(localStorage.getItem("goggins_schedule")) || DEFAULT_SCHEDULE; }
   catch { return DEFAULT_SCHEDULE; }
@@ -59,9 +59,21 @@ function loadHistory() {
 }
 function saveSetRecord(record) {
   const history = loadHistory();
-  history.unshift(record); // newest first
+  history.unshift(record);
   if (history.length > 200) history.splice(200);
   localStorage.setItem("goggins_history", JSON.stringify(history));
+}
+
+// ─── Confetti ─────────────────────────────────────────────────────────────────
+function fireConfetti() {
+  const fire = (angle, origin) => confetti({
+    particleCount: 60, spread: 55, angle, origin,
+    colors: ["#ef4444", "#f97316", "#facc15", "#22c55e", "#ffffff"],
+    startVelocity: 45, gravity: 0.9, ticks: 200,
+  });
+  fire(60,  { x: 0,   y: 0.7 });
+  fire(120, { x: 1,   y: 0.7 });
+  fire(90,  { x: 0.5, y: 0.6 });
 }
 
 // ─── Root ──────────────────────────────────────────────────────────────────────
@@ -81,33 +93,31 @@ function Coach() {
   const { isSpeaking } = useConversationMode();
 
   const todayIdx = getTodayIndex();
-  const [schedule, setSchedule] = useState(loadSchedule);
-  const [weekData, setWeekData] = useState(loadWeekData);
-  const [screen, setScreen] = useState("idle"); // idle | schedule | active | rest | done | history
+  const [schedule, setSchedule]   = useState(loadSchedule);
+  const [weekData, setWeekData]   = useState(loadWeekData);
+  const [screen, setScreen]       = useState("idle");
   const [setNumber, setSetNumber] = useState(1);
   const [restSeconds, setRestSeconds] = useState(REST_SECONDS);
-  const [setSeconds, setSetSeconds] = useState(0);
-  const [micError, setMicError] = useState(null);
-  const [lastRating, setLastRating] = useState(null); // { rating, comment } from current set
-  const setSecondsRef = useRef(0);
-  const restTimerRef = useRef(null);
-  const setTimerRef = useRef(null);
+  const [setSeconds, setSetSeconds]   = useState(0);
+  const [micError, setMicError]   = useState(null);
+  const [lastRating, setLastRating] = useState(null);
+  const setSecondsRef  = useRef(0);
+  const restTimerRef   = useRef(null);
+  const setTimerRef    = useRef(null);
 
-  const isConnected = status === "connected";
+  const isConnected  = status === "connected";
   const isConnecting = status === "connecting";
-  const isError = status === "error";
+  const isError      = status === "error";
 
   const muscleKey = schedule[todayIdx] || "fullbody";
-  const muscle = MUSCLES[muscleKey];
-  const exercise = muscle.exercises[0] || "";
+  const muscle    = MUSCLES[muscleKey];
+  const exercise  = muscle.exercises[0] || "";
 
-  // Register the rateSet client tool — Goggins calls this when set ends
   useConversationClientTool("rateSet", ({ rating, comment }) => {
     const record = {
       id: Date.now(),
       date: new Date().toLocaleDateString("en-CA"),
-      muscleKey,
-      exercise,
+      muscleKey, exercise,
       rating: Math.min(5, Math.max(1, parseInt(rating) || 3)),
       comment: comment || "",
       duration: setSecondsRef.current,
@@ -115,7 +125,6 @@ function Coach() {
     };
     saveSetRecord(record);
     setLastRating({ rating: record.rating, comment: record.comment });
-    // Auto-end session and go to rest after Goggins finishes speaking
     setTimeout(async () => {
       try { await endSession(); } catch {}
       setScreen("rest");
@@ -125,8 +134,7 @@ function Coach() {
 
   useEffect(() => {
     if (screen === "active") {
-      setSetSeconds(0);
-      setSecondsRef.current = 0;
+      setSetSeconds(0); setSecondsRef.current = 0;
       setTimerRef.current = setInterval(() => {
         setSetSeconds((s) => { setSecondsRef.current = s + 1; return s + 1; });
       }, 1000);
@@ -145,11 +153,8 @@ function Coach() {
   }, [screen]);
 
   function handleSaveSchedule(newSchedule) {
-    saveSchedule(newSchedule);
-    setSchedule(newSchedule);
-    setScreen("idle");
+    saveSchedule(newSchedule); setSchedule(newSchedule); setScreen("idle");
   }
-
   async function handleStartSet() {
     setMicError(null);
     try { await navigator.mediaDevices.getUserMedia({ audio: true }); }
@@ -161,7 +166,7 @@ function Coach() {
           agent: {
             firstMessage: muscleKey === "rest"
               ? "Rest day. But you still showed up. That's something. What do you need?"
-              : `${muscle.label} DAY! ${setNumber > 1 ? `Set ${setNumber}.` : ""} We're doing ${exercise} today. ${muscle.reps} reps. Let's go — NOW.`,
+              : `${muscle.label} DAY! ${setNumber > 1 ? `Set ${setNumber}.` : ""} We're doing ${exercise}. ${muscle.reps} reps. Let's go — NOW.`,
           },
         },
         onConnect: () => console.log("Goggins connected"),
@@ -170,94 +175,63 @@ function Coach() {
       setScreen("active");
     } catch (err) { setMicError(`Failed to connect: ${err.message}`); }
   }
-
   async function handleEndSet() { await endSession(); setScreen("rest"); }
-  function handleNextSet() { setSetNumber((n) => n + 1); setScreen("idle"); }
+  function handleNextSet()       { setSetNumber((n) => n + 1); setScreen("idle"); }
   function handleFinishWorkout() {
     markTodayTrained(); setWeekData(loadWeekData());
-    setSetNumber(1); setScreen("done");
+    setSetNumber(1); fireConfetti(); setScreen("done");
   }
   function handleReset() { setSetNumber(1); setScreen("idle"); }
 
   return (
-    <div style={styles.root}>
-      <header style={styles.header}>
+    <div style={S.root}>
+      <header style={S.header}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={styles.logo}>GOGGINS</span>
+          <span style={S.logo}>GOGGINS</span>
           {(screen === "idle" || screen === "schedule" || screen === "history") && (<>
-            <button style={styles.headerBtn} onClick={() => setScreen(screen === "schedule" ? "idle" : "schedule")} title="Weekly Plan">
+            <button style={S.headerBtn} onClick={() => setScreen(screen === "schedule" ? "idle" : "schedule")} title="Weekly Plan">
               {screen === "schedule" ? "✕" : "📅"}
             </button>
-            <button style={styles.headerBtn} onClick={() => setScreen(screen === "history" ? "idle" : "history")} title="History">
+            <button style={S.headerBtn} onClick={() => setScreen(screen === "history" ? "idle" : "history")} title="History">
               {screen === "history" ? "✕" : "📊"}
             </button>
           </>)}
         </div>
         <WeeklyDots weekData={weekData} todayIndex={todayIdx} />
-        <span style={styles.setLabel}>
+        <span style={S.setLabel}>
           {screen === "schedule" ? "PLAN" : screen === "history" ? "STATS" : `SET ${setNumber}`}
         </span>
       </header>
 
-      {screen === "idle" && (
-        <IdleScreen
-          muscle={muscle} muscleKey={muscleKey} exercise={exercise}
-          setNumber={setNumber} isConnecting={isConnecting}
-          error={micError || (isError ? statusMessage || "Connection error" : null)}
-          onStart={handleStartSet} onOpenSchedule={() => setScreen("schedule")}
-        />
-      )}
-      {screen === "schedule" && (
-        <ScheduleScreen
-          schedule={schedule} todayIndex={todayIdx}
-          weekData={weekData} onSave={handleSaveSchedule}
-        />
-      )}
-      {screen === "active" && (
-        <ActiveScreen
-          muscle={muscle} exercise={exercise}
-          isConnected={isConnected} isSpeaking={isSpeaking}
-          setSeconds={setSeconds} onEndSet={handleEndSet}
-          lastRating={lastRating}
-        />
-      )}
-      {screen === "rest" && (
-        <RestScreen
-          restSeconds={restSeconds} setNumber={setNumber}
-          lastRating={lastRating}
-          onNextSet={() => { setLastRating(null); handleNextSet(); }}
-          onFinish={handleFinishWorkout}
-        />
-      )}
-      {screen === "history" && (
-        <HistoryScreen onClose={() => setScreen("idle")} />
-      )}
-      {screen === "done" && (
-        <DoneScreen muscle={muscle} weekData={weekData} lastRating={lastRating} onReset={handleReset} onHistory={() => setScreen("history")} />
-      )}
+      {screen === "idle"     && <IdleScreen muscle={muscle} muscleKey={muscleKey} exercise={exercise} setNumber={setNumber} isConnecting={isConnecting} error={micError || (isError ? statusMessage || "Connection error" : null)} onStart={handleStartSet} onOpenSchedule={() => setScreen("schedule")} />}
+      {screen === "schedule" && <ScheduleScreen schedule={schedule} todayIndex={todayIdx} weekData={weekData} onSave={handleSaveSchedule} />}
+      {screen === "active"   && <ActiveScreen muscle={muscle} exercise={exercise} isConnected={isConnected} isSpeaking={isSpeaking} setSeconds={setSeconds} onEndSet={handleEndSet} lastRating={lastRating} />}
+      {screen === "rest"     && <RestScreen restSeconds={restSeconds} setNumber={setNumber} lastRating={lastRating} onNextSet={() => { setLastRating(null); handleNextSet(); }} onFinish={handleFinishWorkout} muscle={muscle} />}
+      {screen === "history"  && <HistoryScreen onClose={() => setScreen("idle")} />}
+      {screen === "done"     && <DoneScreen muscle={muscle} weekData={weekData} lastRating={lastRating} onReset={handleReset} onHistory={() => setScreen("history")} />}
     </div>
   );
 }
 
-// ─── Weekly Dots (header) ─────────────────────────────────────────────────────
+// ─── Weekly Dots ──────────────────────────────────────────────────────────────
 function WeeklyDots({ weekData, todayIndex }) {
   const count = weekData.filter(Boolean).length;
   return (
-    <div style={styles.dotsWrap}>
-      <div style={styles.dotsRow}>
+    <div style={S.dotsWrap}>
+      <div style={S.dotsRow}>
         {DAY_SHORT.map((d, i) => (
-          <div key={i} style={styles.dotCol}>
+          <div key={i} style={S.dotCol}>
             <div style={{
-              ...styles.dot,
-              background: weekData[i] ? "var(--green)" : i === todayIndex ? "#333" : "#1a1a1a",
-              border: `1px solid ${i === todayIndex ? "#666" : "transparent"}`,
-              boxShadow: weekData[i] ? "0 0 6px rgba(34,197,94,0.5)" : "none",
+              ...S.dot,
+              background: weekData[i] ? "var(--green)" : i === todayIndex ? "#2a2a2a" : "#141414",
+              border: `1px solid ${i === todayIndex ? "#444" : "transparent"}`,
+              boxShadow: weekData[i] ? "0 0 8px rgba(34,197,94,0.7)" : "none",
             }} />
-            <span style={{ ...styles.dotLabel, color: i === todayIndex ? "#fff" : "var(--gray)" }}>{d}</span>
+            <span style={{ ...S.dotLabel, color: i === todayIndex ? "#fff" : "var(--gray)" }}>{d}</span>
           </div>
         ))}
       </div>
-      <span style={styles.dotCount}>{count} / 7 this week</span>
+      <span style={S.dotCount}>{count}/7 this week</span>
     </div>
   );
 }
@@ -265,66 +239,52 @@ function WeeklyDots({ weekData, todayIndex }) {
 // ─── Schedule Screen ──────────────────────────────────────────────────────────
 function ScheduleScreen({ schedule, todayIndex, weekData, onSave }) {
   const [draft, setDraft] = useState({ ...schedule });
-  const [expandedDay, setExpandedDay] = useState(todayIndex); // open today by default
+  const [expandedDay, setExpandedDay] = useState(todayIndex);
 
   function assignMuscle(dayIdx, key) {
     setDraft((d) => ({ ...d, [dayIdx]: key }));
-    // Auto-advance to next day for fast setup
     if (dayIdx < 6) setExpandedDay(dayIdx + 1);
   }
 
   return (
-    <div style={styles.scheduleScreen} className="animate-in">
-      <p style={styles.scheduleTitle}>WEEKLY PLAN</p>
-      <p style={styles.scheduleSub}>Tap a day, then choose your muscle group</p>
-
-      <div style={styles.dayList}>
+    <div style={S.scheduleScreen} className="animate-in">
+      <p style={S.pageTitle}>WEEKLY PLAN</p>
+      <p style={S.pageSub}>Tap a day, then choose your muscle group</p>
+      <div style={S.dayList}>
         {DAY_NAMES.map((name, i) => {
           const mKey = draft[i] || "rest";
           const m = MUSCLES[mKey];
           const isToday = i === todayIndex;
           const isExpanded = expandedDay === i;
           const trained = weekData[i];
-
           return (
-            <div key={i} style={{ ...styles.dayCard, borderColor: isExpanded ? m.color + "88" : isToday ? "#333" : "#1e1e1e" }}>
-              {/* Day row — click to expand */}
-              <button
-                style={styles.dayRow}
-                onClick={() => setExpandedDay(isExpanded ? null : i)}
-              >
-                <div style={styles.dayLeft}>
+            <div key={i} style={{ ...S.dayCard, borderColor: isExpanded ? m.color + "88" : isToday ? "#2a2a2a" : "#1a1a1a" }}>
+              <button style={S.dayRow} onClick={() => setExpandedDay(isExpanded ? null : i)}>
+                <div style={S.dayLeft}>
                   {trained
-                    ? <span style={styles.trainedBadge}>✓</span>
+                    ? <span style={S.trainedBadge}>✓</span>
                     : isToday
-                      ? <span style={styles.todayBadge}>TODAY</span>
-                      : <span style={styles.dayNum}>{i + 1}</span>
-                  }
-                  <span style={{ ...styles.dayName, color: isToday ? "#fff" : "var(--gray-light)" }}>{name}</span>
+                      ? <span style={S.todayBadge}>TODAY</span>
+                      : <span style={S.dayNum}>{i + 1}</span>}
+                  <span style={{ ...S.dayName, color: isToday ? "#fff" : "var(--gray-light)" }}>{name}</span>
                 </div>
-                <div style={styles.dayRight}>
-                  <span style={{ ...styles.muscleTag, background: m.color + "22", color: m.color, border: `1px solid ${m.color}44` }}>
+                <div style={S.dayRight}>
+                  <span style={{ ...S.muscleTag, background: m.color + "22", color: m.color, border: `1px solid ${m.color}44` }}>
                     {m.emoji} {m.label}
                   </span>
-                  <span style={{ color: isExpanded ? m.color : "var(--gray)", fontSize: 12 }}>{isExpanded ? "▲" : "▼"}</span>
+                  <span style={{ color: isExpanded ? m.color : "var(--gray)", fontSize: 11 }}>{isExpanded ? "▲" : "▼"}</span>
                 </div>
               </button>
-
-              {/* Muscle picker — shown when expanded */}
               {isExpanded && (
-                <div style={styles.musclePickerWrap}>
+                <div style={S.musclePickerWrap}>
                   {Object.entries(MUSCLES).map(([key, mu]) => (
-                    <button
-                      key={key}
-                      onClick={() => assignMuscle(i, key)}
-                      style={{
-                        ...styles.pickPill,
-                        background: mKey === key ? mu.color : "#1a1a1a",
-                        color: mKey === key ? "#fff" : "var(--gray-light)",
-                        border: `1px solid ${mKey === key ? mu.color : "#2a2a2a"}`,
-                        boxShadow: mKey === key ? `0 0 10px ${mu.color}44` : "none",
-                      }}
-                    >
+                    <button key={key} onClick={() => assignMuscle(i, key)} style={{
+                      ...S.pickPill,
+                      background: mKey === key ? mu.color : "#1a1a1a",
+                      color: mKey === key ? "#fff" : "var(--gray-light)",
+                      border: `1px solid ${mKey === key ? mu.color : "#252525"}`,
+                      boxShadow: mKey === key ? `0 0 12px ${mu.color}55` : "none",
+                    }}>
                       {mu.emoji} {mu.label}
                     </button>
                   ))}
@@ -334,11 +294,7 @@ function ScheduleScreen({ schedule, todayIndex, weekData, onSave }) {
           );
         })}
       </div>
-
-      <button
-        style={{ ...styles.saveBtn, background: MUSCLES[draft[todayIndex] || "rest"].color }}
-        onClick={() => onSave(draft)}
-      >
+      <button style={{ ...S.primaryBtn, background: MUSCLES[draft[todayIndex] || "rest"].color, boxShadow: `0 4px 24px ${MUSCLES[draft[todayIndex] || "rest"].color}55` }} onClick={() => onSave(draft)}>
         SAVE SCHEDULE
       </button>
     </div>
@@ -348,46 +304,57 @@ function ScheduleScreen({ schedule, todayIndex, weekData, onSave }) {
 // ─── Idle Screen ──────────────────────────────────────────────────────────────
 function IdleScreen({ muscle, muscleKey, exercise, setNumber, isConnecting, error, onStart, onOpenSchedule }) {
   const isRest = muscleKey === "rest";
-
   return (
-    <div style={styles.screen} className="animate-in">
-      <div style={{ ...styles.exerciseCard, borderColor: muscle.color + "44" }}>
-        <p style={styles.exerciseLabel}>TODAY'S WORKOUT</p>
+    <div style={S.screen} className="animate-in">
+      {/* Big exercise card */}
+      <div style={{ ...S.exerciseCard, borderColor: muscle.color + "55", boxShadow: `0 0 40px ${muscle.color}18` }}>
+        <p style={S.exerciseLabel}>TODAY'S WORKOUT</p>
         {isRest ? (
           <>
-            <h1 style={{ ...styles.exerciseName, color: muscle.color, fontSize: 48 }}>REST DAY</h1>
-            <p style={styles.exerciseSub}>Recovery is part of the grind</p>
+            <h1 style={{ ...S.exerciseName, color: muscle.color, fontSize: 52 }}>REST DAY</h1>
+            <p style={S.exerciseSub}>Recovery is part of the grind</p>
           </>
         ) : (
           <>
-            <h1 style={{ ...styles.exerciseName, color: muscle.color }}>{exercise.toUpperCase()}</h1>
-            <p style={styles.exerciseSub}>{muscle.reps} reps · {muscle.label} · Stay Hard</p>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 4 }}>
+              <span style={{ fontSize: 36 }}>{muscle.emoji}</span>
+              <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 13, letterSpacing: 4, color: muscle.color }}>{muscle.label}</span>
+            </div>
+            <h1 style={{ ...S.exerciseName, color: "#fff" }}>{exercise.toUpperCase()}</h1>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 10 }}>
+              <span style={{ ...S.statPill, background: muscle.color + "22", color: muscle.color, border: `1px solid ${muscle.color}44` }}>
+                {muscle.reps} REPS
+              </span>
+              <span style={{ ...S.statPill, background: "#1a1a1a", color: "var(--gray-light)", border: "1px solid #252525" }}>
+                SET {setNumber}
+              </span>
+            </div>
           </>
         )}
       </div>
 
-      {error && <div style={styles.errorBox}>⚠️ {error}</div>}
+      {error && <div style={S.errorBox}>⚠️ {error}</div>}
 
       <button
         style={{
-          ...styles.startBtn,
-          background: isRest ? "#333" : muscle.color,
-          boxShadow: isRest ? "none" : `0 4px 24px ${muscle.color}55`,
-          opacity: isConnecting ? 0.6 : 1,
+          ...S.primaryBtn,
+          background: isRest ? "#222" : `linear-gradient(135deg, ${muscle.color}, ${muscle.color}cc)`,
+          boxShadow: isRest ? "none" : `0 6px 32px ${muscle.color}55`,
+          opacity: isConnecting ? 0.55 : 1,
+          fontSize: 28,
+          letterSpacing: 5,
+          padding: "20px 56px",
         }}
         onClick={onStart}
         disabled={isConnecting}
       >
-        {isConnecting ? "CONNECTING..." : isRest ? "TALK TO GOGGINS" : `START SET ${setNumber}`}
+        {isConnecting
+          ? <span style={{ animation: "blink 1s infinite" }}>CONNECTING...</span>
+          : isRest ? "TALK TO GOGGINS" : `START SET ${setNumber}`}
       </button>
 
-      <button style={styles.planLink} onClick={onOpenSchedule}>
-        📅 Edit weekly plan
-      </button>
-
-      <p style={styles.hint}>
-        {isRest ? "Rest day — or talk to Goggins anyway." : `Tap · do your reps · say "Done" to finish`}
-      </p>
+      <button style={S.ghostBtn} onClick={onOpenSchedule}>📅 Edit weekly plan</button>
+      <p style={S.hint}>{isRest ? "Rest day — or talk to Goggins anyway." : `Tap · do your reps · say "Done" to finish`}</p>
     </div>
   );
 }
@@ -397,54 +364,66 @@ function ActiveScreen({ muscle, exercise, isConnected, isSpeaking, setSeconds, o
   const mins = String(Math.floor(setSeconds / 60)).padStart(2, "0");
   const secs = String(setSeconds % 60).padStart(2, "0");
   return (
-    <div style={{ ...styles.screen, position: "relative", overflow: "hidden" }} className="animate-in">
+    <div style={{ ...S.screen, position: "relative", overflow: "hidden" }} className="animate-in">
       {exercise && (
-        <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 13, letterSpacing: 4, color: muscle.color }}>
+        <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 12, letterSpacing: 5, color: muscle.color, opacity: 0.85 }}>
           {exercise.toUpperCase()} · {muscle.label}
         </p>
       )}
-      <div style={styles.orbContainer}>
-        {isSpeaking && <div style={{ ...styles.orbRing, borderColor: muscle.color }} />}
+
+      {/* Orb */}
+      <div style={S.orbContainer}>
+        {isSpeaking && <div style={{ ...S.orbRing, borderColor: muscle.color }} />}
+        {isSpeaking && <div style={{ ...S.orbRing2, borderColor: muscle.color }} />}
         <div style={{
-          ...styles.orb,
+          ...S.orb,
           background: isSpeaking
-            ? `radial-gradient(circle at 40% 40%, ${muscle.color}cc, ${muscle.color})`
-            : "radial-gradient(circle at 40% 40%, #444, #222)",
-          boxShadow: isSpeaking ? `0 0 60px 20px ${muscle.color}55` : "0 0 20px 4px rgba(255,255,255,0.05)",
-          animation: isSpeaking ? "pulse-red 1.5s infinite" : "none",
+            ? `radial-gradient(circle at 38% 35%, ${muscle.color}ee, ${muscle.color}88)`
+            : "radial-gradient(circle at 38% 35%, #2a2a2a, #111)",
+          boxShadow: isSpeaking
+            ? `0 0 80px 24px ${muscle.color}55, inset 0 0 30px ${muscle.color}33`
+            : "0 0 20px 4px rgba(255,255,255,0.04)",
+          animation: isSpeaking ? "pulse-red 1.8s ease-in-out infinite" : "none",
         }} />
         {isSpeaking && (
-          <div style={styles.waveContainer}>
-            {[0.2, 0.5, 0.1, 0.7, 0.3, 0.9, 0.4, 0.6, 0.2, 0.8].map((delay, i) => (
-              <div key={i} style={{ ...styles.waveBar, background: muscle.color, animationDelay: `${delay}s`, animationDuration: `${0.6 + delay * 0.4}s` }} />
+          <div style={S.waveContainer}>
+            {[0.2, 0.5, 0.1, 0.7, 0.3, 0.9, 0.4, 0.6, 0.2, 0.8, 0.35, 0.65].map((delay, i) => (
+              <div key={i} style={{ ...S.waveBar, background: muscle.color, animationDelay: `${delay}s`, animationDuration: `${0.5 + delay * 0.5}s` }} />
             ))}
           </div>
         )}
       </div>
-      <div style={styles.modeLabel}>
+
+      {/* Status */}
+      <div style={S.modeLabel}>
         {!isConnected
           ? <span style={{ color: "var(--gray-light)", animation: "blink 1s infinite" }}>CONNECTING...</span>
           : isSpeaking
-            ? <span style={{ color: muscle.color, fontWeight: 700 }}>GOGGINS IS PUSHING YOU</span>
-            : <span style={{ color: "var(--gray-light)" }}>HE'S LISTENING...</span>
-        }
+            ? <span style={{ color: muscle.color, fontWeight: 800, textShadow: `0 0 20px ${muscle.color}88` }}>GOGGINS IS PUSHING YOU</span>
+            : <span style={{ color: "var(--gray-light)" }}>HE'S LISTENING...</span>}
       </div>
-      <div style={styles.setTimer}>{mins}:{secs}</div>
-      <p style={styles.activeHint}>Say <strong style={{ color: "var(--white)" }}>"Done"</strong> to end the set</p>
-      <button style={styles.stopBtn} onClick={onEndSet}>END SET</button>
 
-      {/* Rating overlay — appears the moment Goggins calls rateSet */}
+      {/* Timer */}
+      <div style={S.setTimer}>{mins}:{secs}</div>
+      <p style={S.activeHint}>Say <strong style={{ color: "var(--white)" }}>"Done"</strong> to end the set</p>
+      <button style={S.stopBtn} onClick={onEndSet}>END SET</button>
+
+      {/* Rating overlay */}
       {lastRating && (
-        <div style={styles.ratingOverlay} className="animate-in">
-          <p style={styles.ratingOverlayEyebrow}>GOGGINS RATED THIS SET</p>
-          <Stars rating={lastRating.rating} size={52} />
-          <p style={styles.ratingOverlayScore}>
+        <div style={S.ratingOverlay} className="animate-in">
+          <p style={S.ratingOverlayEyebrow}>GOGGINS RATED THIS SET</p>
+          <div className="rating-pop">
+            <Stars rating={lastRating.rating} size={56} />
+          </div>
+          <p style={{
+            ...S.ratingOverlayScore,
+            color: lastRating.rating >= 5 ? "var(--gold)" : lastRating.rating >= 4 ? "var(--green)" : lastRating.rating === 3 ? "var(--orange)" : "var(--red)",
+            textShadow: lastRating.rating >= 4 ? `0 0 30px ${lastRating.rating >= 5 ? "var(--gold-glow)" : "var(--green-glow)"}` : "none",
+          }}>
             {lastRating.rating >= 5 ? "PERFECT" : lastRating.rating >= 4 ? "STRONG" : lastRating.rating === 3 ? "SOLID" : "WEAK"}
           </p>
-          {lastRating.comment ? (
-            <p style={styles.ratingOverlayComment}>"{lastRating.comment}"</p>
-          ) : null}
-          <p style={styles.ratingOverlayHint}>Heading to rest...</p>
+          {lastRating.comment && <p style={S.ratingOverlayComment}>"{lastRating.comment}"</p>}
+          <p style={S.ratingOverlayHint}>Heading to rest...</p>
         </div>
       )}
     </div>
@@ -454,39 +433,100 @@ function ActiveScreen({ muscle, exercise, isConnected, isSpeaking, setSeconds, o
 // ─── Stars ────────────────────────────────────────────────────────────────────
 function Stars({ rating, size = 18 }) {
   return (
-    <span style={{ fontSize: size, letterSpacing: 2 }}>
+    <span style={{ fontSize: size, letterSpacing: size > 24 ? 4 : 1, display: "inline-block" }}>
       {[1,2,3,4,5].map(i => (
-        <span key={i} style={{ color: i <= rating ? "#f59e0b" : "#333" }}>★</span>
+        <span key={i} style={{
+          color: i <= rating ? "var(--gold)" : "#252525",
+          textShadow: i <= rating && size > 24 ? "0 0 16px var(--gold-glow)" : "none",
+          transition: "color 0.2s",
+        }}>★</span>
       ))}
     </span>
   );
 }
 
 // ─── Rest Screen ──────────────────────────────────────────────────────────────
-function RestScreen({ restSeconds, setNumber, lastRating, onNextSet, onFinish }) {
+function RestScreen({ restSeconds, setNumber, lastRating, onNextSet, onFinish, muscle }) {
+  const fraction = restSeconds / REST_SECONDS;
+  const circumference = 2 * Math.PI * 58; // r=58
+  const strokeDash = circumference * fraction;
+
   return (
-    <div style={styles.screen} className="animate-in">
-      <p style={styles.restLabel}>REST</p>
-      <div style={styles.restTimer}>
-        <svg viewBox="0 0 120 120" style={styles.restSvg}>
-          <circle cx="60" cy="60" r="54" style={styles.restTrack} />
-          <circle cx="60" cy="60" r="54" style={{ ...styles.restProgress, strokeDashoffset: 339.3 * (restSeconds / REST_SECONDS) }} />
+    <div style={S.screen} className="animate-in">
+      <p style={S.restLabel}>REST</p>
+
+      {/* Big glowing circle timer */}
+      <div style={S.restTimerWrap}>
+        {/* Glow halo */}
+        <div style={{
+          position: "absolute", inset: -12,
+          borderRadius: "50%",
+          boxShadow: `0 0 60px 16px var(--green-glow)`,
+          opacity: 0.5 + fraction * 0.5,
+          animation: "glow-pulse 2s ease-in-out infinite",
+        }} />
+        <svg viewBox="0 0 140 140" style={S.restSvg}>
+          {/* Track */}
+          <circle cx="70" cy="70" r="58" fill="none" stroke="#1a1a1a" strokeWidth="6" />
+          {/* Ticks */}
+          {Array.from({ length: 30 }).map((_, i) => {
+            const angle = (i / 30) * 360 - 90;
+            const rad = angle * Math.PI / 180;
+            const inner = 52, outer = 57;
+            return (
+              <line key={i}
+                x1={70 + inner * Math.cos(rad)} y1={70 + inner * Math.sin(rad)}
+                x2={70 + outer * Math.cos(rad)} y2={70 + outer * Math.sin(rad)}
+                stroke="#2a2a2a" strokeWidth="1.5" strokeLinecap="round"
+              />
+            );
+          })}
+          {/* Progress arc */}
+          <circle cx="70" cy="70" r="58"
+            fill="none"
+            stroke="var(--green)"
+            strokeWidth="5"
+            strokeDasharray={`${strokeDash} ${circumference}`}
+            strokeDashoffset="0"
+            strokeLinecap="round"
+            transform="rotate(-90 70 70)"
+            style={{ transition: "stroke-dasharray 1s linear", filter: "drop-shadow(0 0 8px var(--green))" }}
+          />
         </svg>
-        <span style={styles.restNumber}>{restSeconds}</span>
+        <div style={S.restTimerInner}>
+          <span style={S.restNumber}>{restSeconds}</span>
+          <span style={S.restUnit}>sec</span>
+        </div>
       </div>
 
+      {/* Rating card */}
       {lastRating && (
-        <div style={styles.ratingCard}>
-          <p style={styles.ratingLabel}>GOGGINS RATED THIS SET</p>
-          <Stars rating={lastRating.rating} size={24} />
-          <p style={styles.ratingComment}>"{lastRating.comment}"</p>
+        <div style={S.ratingCard} className="slide-up">
+          <p style={S.ratingLabel}>GOGGINS RATED THIS SET</p>
+          <Stars rating={lastRating.rating} size={22} />
+          {lastRating.comment && <p style={S.ratingComment}>"{lastRating.comment}"</p>}
         </div>
       )}
 
-      <p style={styles.restSub}>{restSeconds === 0 ? "Ready to go again?" : "Recover. Breathe. Focus."}</p>
-      <div style={styles.restActions}>
-        <button style={styles.nextBtn} onClick={onNextSet}>SET {setNumber + 1} →</button>
-        <button style={styles.finishBtn} onClick={onFinish}>FINISH WORKOUT</button>
+      <p style={{ fontSize: 13, color: restSeconds === 0 ? "var(--white)" : "var(--gray-light)", letterSpacing: 1, fontFamily: "'Bebas Neue', sans-serif" }}>
+        {restSeconds === 0 ? "READY TO GO AGAIN?" : "RECOVER. BREATHE. FOCUS."}
+      </p>
+
+      <div style={S.restActions}>
+        <button
+          style={{
+            ...S.primaryBtn,
+            background: restSeconds === 0 ? "var(--green)" : "#1a2e1a",
+            color: restSeconds === 0 ? "#000" : "var(--green)",
+            border: `1px solid var(--green)`,
+            boxShadow: restSeconds === 0 ? "0 4px 32px var(--green-glow)" : "none",
+            transition: "all 0.4s",
+          }}
+          onClick={onNextSet}
+        >
+          SET {setNumber + 1} →
+        </button>
+        <button style={S.ghostBtn} onClick={onFinish}>FINISH WORKOUT</button>
       </div>
     </div>
   );
@@ -498,36 +538,31 @@ function HistoryScreen({ onClose }) {
   const avgRating = history.length
     ? (history.reduce((s, r) => s + r.rating, 0) / history.length).toFixed(1)
     : "—";
-
-  // Group by date
   const grouped = history.reduce((acc, r) => {
     if (!acc[r.date]) acc[r.date] = [];
     acc[r.date].push(r);
     return acc;
   }, {});
-
-  const ratingColor = (r) => r >= 4 ? "var(--green)" : r === 3 ? "#f59e0b" : "var(--red)";
+  const ratingColor = (r) => r >= 4 ? "var(--green)" : r === 3 ? "var(--gold)" : "var(--red)";
 
   return (
-    <div style={styles.historyScreen} className="animate-in">
-      <div style={styles.historyHeader}>
-        <p style={styles.scheduleTitle}>PERFORMANCE</p>
-        <div style={styles.historyStats}>
-          <div style={styles.hStat}>
-            <span style={{ ...styles.hStatNum, color: "#f59e0b" }}>{avgRating}</span>
-            <span style={styles.hStatLabel}>AVG RATING</span>
+    <div style={S.historyScreen} className="animate-in">
+      <div style={S.historyHeader}>
+        <p style={S.pageTitle}>PERFORMANCE</p>
+        <div style={S.historyStats}>
+          <div style={S.hStat}>
+            <span style={{ ...S.hStatNum, color: "var(--gold)" }}>{avgRating}</span>
+            <span style={S.hStatLabel}>AVG RATING</span>
           </div>
-          <div style={styles.hStatDiv} />
-          <div style={styles.hStat}>
-            <span style={{ ...styles.hStatNum, color: "var(--white)" }}>{history.length}</span>
-            <span style={styles.hStatLabel}>TOTAL SETS</span>
+          <div style={S.hStatDiv} />
+          <div style={S.hStat}>
+            <span style={{ ...S.hStatNum, color: "var(--white)" }}>{history.length}</span>
+            <span style={S.hStatLabel}>TOTAL SETS</span>
           </div>
-          <div style={styles.hStatDiv} />
-          <div style={styles.hStat}>
-            <span style={{ ...styles.hStatNum, color: "var(--green)" }}>
-              {history.filter(r => r.rating >= 4).length}
-            </span>
-            <span style={styles.hStatLabel}>GREAT SETS</span>
+          <div style={S.hStatDiv} />
+          <div style={S.hStat}>
+            <span style={{ ...S.hStatNum, color: "var(--green)" }}>{history.filter(r => r.rating >= 4).length}</span>
+            <span style={S.hStatLabel}>GREAT SETS</span>
           </div>
         </div>
       </div>
@@ -535,22 +570,22 @@ function HistoryScreen({ onClose }) {
       {history.length === 0 ? (
         <p style={{ color: "var(--gray)", fontSize: 14, marginTop: 32 }}>No sets recorded yet. Start training!</p>
       ) : (
-        <div style={styles.historyList}>
+        <div style={S.historyList}>
           {Object.entries(grouped).map(([date, sets]) => (
             <div key={date}>
-              <p style={styles.historyDate}>{new Date(date + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</p>
+              <p style={S.historyDate}>{new Date(date + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</p>
               {sets.map((r) => (
-                <div key={r.id} style={styles.historyRow}>
-                  <div style={styles.historyLeft}>
-                    <span style={{ ...styles.historyMuscle, color: MUSCLES[r.muscleKey]?.color || "var(--white)" }}>
+                <div key={r.id} style={{ ...S.historyRow, borderColor: r.rating >= 4 ? MUSCLES[r.muscleKey]?.color + "33" || "#1e1e1e" : "#1a1a1a" }}>
+                  <div style={S.historyLeft}>
+                    <span style={{ ...S.historyMuscle, color: MUSCLES[r.muscleKey]?.color || "var(--white)" }}>
                       {MUSCLES[r.muscleKey]?.emoji} {r.muscleKey?.toUpperCase()}
                     </span>
-                    <span style={styles.historyExercise}>{r.exercise} · Set {r.setNum}</span>
-                    {r.comment ? <span style={styles.historyQuote}>"{r.comment}"</span> : null}
+                    <span style={S.historyExercise}>{r.exercise} · Set {r.setNum}</span>
+                    {r.comment && <span style={S.historyQuote}>"{r.comment}"</span>}
                   </div>
-                  <div style={styles.historyRight}>
-                    <Stars rating={r.rating} size={14} />
-                    <span style={{ ...styles.historyDuration, color: ratingColor(r.rating) }}>
+                  <div style={S.historyRight}>
+                    <Stars rating={r.rating} size={13} />
+                    <span style={{ ...S.historyBadge, color: ratingColor(r.rating), borderColor: ratingColor(r.rating) + "44", background: ratingColor(r.rating) + "11" }}>
                       {r.rating >= 4 ? "GREAT" : r.rating === 3 ? "SOLID" : "WEAK"}
                     </span>
                   </div>
@@ -569,43 +604,44 @@ function DoneScreen({ muscle, weekData, lastRating, onReset, onHistory }) {
   const trained = weekData.filter(Boolean).length;
   const history = loadHistory();
   const avgRating = history.length
-    ? (history.reduce((s, r) => s + r.rating, 0) / history.length).toFixed(1)
-    : null;
+    ? (history.reduce((s, r) => s + r.rating, 0) / history.length).toFixed(1) : null;
 
   return (
-    <div style={{ ...styles.screen, gap: 20 }} className="animate-in">
-      <p style={{ fontSize: 52 }}>💪</p>
-      <h2 style={styles.doneTitle}>WORKOUT COMPLETE</h2>
+    <div style={{ ...S.screen, gap: 22 }} className="animate-in">
+      <p style={{ fontSize: 56 }}>💪</p>
+      <h2 style={S.doneTitle}>WORKOUT COMPLETE</h2>
 
       {lastRating && (
-        <div style={styles.ratingCard}>
-          <p style={styles.ratingLabel}>FINAL RATING</p>
+        <div style={{ ...S.ratingCard, borderColor: "#f59e0b55" }}>
+          <p style={S.ratingLabel}>FINAL RATING</p>
           <Stars rating={lastRating.rating} size={26} />
-          <p style={styles.ratingComment}>"{lastRating.comment}"</p>
+          {lastRating.comment && <p style={S.ratingComment}>"{lastRating.comment}"</p>}
         </div>
       )}
 
-      <div style={styles.doneStats}>
-        <div style={styles.doneStat}>
-          <span style={{ ...styles.doneStatNum, color: muscle.color }}>{muscle.label}</span>
-          <span style={styles.doneStatLabel}>TODAY</span>
+      <div style={S.doneStats}>
+        <div style={S.doneStat}>
+          <span style={{ ...S.doneStatNum, color: muscle.color }}>{muscle.label}</span>
+          <span style={S.doneStatLabel}>TODAY</span>
         </div>
-        <div style={styles.doneStatDivider} />
-        <div style={styles.doneStat}>
-          <span style={{ ...styles.doneStatNum, color: "var(--green)" }}>{trained}</span>
-          <span style={styles.doneStatLabel}>THIS WEEK</span>
+        <div style={S.doneStatDivider} />
+        <div style={S.doneStat}>
+          <span style={{ ...S.doneStatNum, color: "var(--green)" }}>{trained}</span>
+          <span style={S.doneStatLabel}>THIS WEEK</span>
         </div>
         {avgRating && <>
-          <div style={styles.doneStatDivider} />
-          <div style={styles.doneStat}>
-            <span style={{ ...styles.doneStatNum, color: "#f59e0b" }}>{avgRating}★</span>
-            <span style={styles.doneStatLabel}>AVG RATING</span>
+          <div style={S.doneStatDivider} />
+          <div style={S.doneStat}>
+            <span style={{ ...S.doneStatNum, color: "var(--gold)" }}>{avgRating}★</span>
+            <span style={S.doneStatLabel}>AVG RATING</span>
           </div>
         </>}
       </div>
 
-      <button style={{ ...styles.startBtn, background: muscle.color }} onClick={onReset}>NEW WORKOUT</button>
-      <button style={styles.planLink} onClick={onHistory}>📊 View performance history</button>
+      <button style={{ ...S.primaryBtn, background: `linear-gradient(135deg, ${muscle.color}, ${muscle.color}aa)`, boxShadow: `0 6px 32px ${muscle.color}55` }} onClick={onReset}>
+        NEW WORKOUT
+      </button>
+      <button style={S.ghostBtn} onClick={onHistory}>📊 View performance history</button>
     </div>
   );
 }
@@ -613,147 +649,121 @@ function DoneScreen({ muscle, weekData, lastRating, onReset, onHistory }) {
 // ─── Missing Agent ID ─────────────────────────────────────────────────────────
 function MissingAgentId() {
   return (
-    <div style={{ ...styles.root, justifyContent: "center", alignItems: "center", padding: 32, textAlign: "center" }}>
+    <div style={{ ...S.root, justifyContent: "center", alignItems: "center", padding: 32, textAlign: "center" }}>
       <h2 style={{ color: "var(--red)", fontFamily: "'Bebas Neue', sans-serif", fontSize: 40, marginBottom: 16 }}>AGENT ID MISSING</h2>
-      <pre style={styles.codeBlock}>VITE_AGENT_ID=your_elevenlabs_agent_id</pre>
+      <pre style={S.codeBlock}>VITE_AGENT_ID=your_elevenlabs_agent_id</pre>
     </div>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const styles = {
-  root: { minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--bg)" },
+const S = {
+  root: { minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--bg)", position: "relative", zIndex: 1 },
 
-  header: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", borderBottom: "1px solid #1e1e1e" },
-  logo: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 20, letterSpacing: 3, color: "var(--red)" },
-  setLabel: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 15, letterSpacing: 2, color: "var(--gray-light)", minWidth: 48, textAlign: "right" },
-  headerBtn: { background: "none", color: "var(--gray-light)", fontSize: 15, padding: "2px 6px", borderRadius: 6, border: "1px solid #2a2a2a", cursor: "pointer" },
+  // Header
+  header: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", borderBottom: "1px solid #181818", background: "rgba(5,5,5,0.95)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 100 },
+  logo: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: 4, color: "var(--red)", textShadow: "0 0 20px rgba(239,68,68,0.5)" },
+  setLabel: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 14, letterSpacing: 3, color: "var(--gray-light)", minWidth: 48, textAlign: "right" },
+  headerBtn: { background: "none", color: "var(--gray-light)", fontSize: 14, padding: "3px 7px", borderRadius: 6, border: "1px solid #202020", cursor: "pointer" },
 
   // Dots
   dotsWrap: { display: "flex", flexDirection: "column", alignItems: "center", gap: 3 },
   dotsRow: { display: "flex", gap: 5 },
   dotCol: { display: "flex", flexDirection: "column", alignItems: "center", gap: 2 },
-  dot: { width: 9, height: 9, borderRadius: "50%", transition: "all 0.3s" },
-  dotLabel: { fontSize: 8, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: 0.5 },
-  dotCount: { fontSize: 9, color: "var(--gray)", letterSpacing: 1, fontFamily: "'Bebas Neue', sans-serif" },
+  dot: { width: 8, height: 8, borderRadius: "50%", transition: "all 0.3s" },
+  dotLabel: { fontSize: 7, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: 0.5 },
+  dotCount: { fontSize: 8, color: "var(--gray)", letterSpacing: 1, fontFamily: "'Bebas Neue', sans-serif" },
 
+  // Screens
   screen: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 22, padding: "32px 20px" },
+  pageTitle: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 30, letterSpacing: 6, color: "var(--white)" },
+  pageSub: { fontSize: 12, color: "var(--gray-light)", letterSpacing: 0.5, marginTop: -8, textAlign: "center" },
 
-  exerciseCard: { textAlign: "center", background: "#111", border: "1px solid #222", borderRadius: 16, padding: "24px 40px", width: "100%", maxWidth: 380, transition: "border-color 0.3s" },
-  exerciseLabel: { fontSize: 10, letterSpacing: 4, color: "var(--gray)", marginBottom: 8 },
-  exerciseName: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 52, letterSpacing: 4, lineHeight: 1, marginBottom: 8, transition: "color 0.3s" },
-  exerciseSub: { fontSize: 13, color: "var(--gray-light)", letterSpacing: 1 },
+  // Exercise card
+  exerciseCard: { textAlign: "center", background: "#0d0d0d", border: "1px solid #1e1e1e", borderRadius: 20, padding: "28px 40px", width: "100%", maxWidth: 380, transition: "all 0.3s" },
+  exerciseLabel: { fontSize: 9, letterSpacing: 5, color: "var(--gray)", marginBottom: 12, fontFamily: "'Bebas Neue', sans-serif" },
+  exerciseName: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 54, letterSpacing: 3, lineHeight: 1, color: "var(--white)", transition: "color 0.3s" },
+  statPill: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 11, letterSpacing: 2, padding: "5px 12px", borderRadius: 20 },
 
-  errorBox: { background: "rgba(230,50,50,0.1)", border: "1px solid var(--red)", borderRadius: 8, padding: "12px 16px", fontSize: 13, color: "#ff9999", maxWidth: 380, textAlign: "center" },
-  startBtn: { color: "#fff", fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, letterSpacing: 4, padding: "18px 56px", borderRadius: 12, width: "100%", maxWidth: 380, transition: "all 0.2s" },
-  planLink: { background: "none", color: "var(--gray)", fontSize: 13, cursor: "pointer", letterSpacing: 0.5, padding: 4, border: "none" },
+  // Buttons
+  primaryBtn: { color: "#fff", fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: 5, padding: "18px 56px", borderRadius: 14, width: "100%", maxWidth: 380, transition: "all 0.2s", border: "none" },
+  ghostBtn: { background: "none", color: "var(--gray-light)", fontSize: 13, cursor: "pointer", letterSpacing: 0.5, padding: "6px 4px", border: "none" },
   hint: { fontSize: 12, color: "var(--gray)", textAlign: "center", lineHeight: 1.8 },
+  errorBox: { background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "#fca5a5", maxWidth: 380, textAlign: "center" },
 
-  // Schedule screen
-  scheduleScreen: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "24px 16px", overflowY: "auto" },
-  scheduleTitle: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: 5, color: "var(--white)" },
-  scheduleSub: { fontSize: 12, color: "var(--gray-light)", letterSpacing: 0.5, marginTop: -8, textAlign: "center" },
+  // Active screen orb
+  orbContainer: { position: "relative", width: 180, height: 180, display: "flex", alignItems: "center", justifyContent: "center" },
+  orb: { width: 130, height: 130, borderRadius: "50%", transition: "background 0.4s, box-shadow 0.4s", zIndex: 1 },
+  orbRing: { position: "absolute", width: 130, height: 130, borderRadius: "50%", border: "2px solid", animation: "pulse-ring 1.8s ease-out infinite", zIndex: 0 },
+  orbRing2: { position: "absolute", width: 130, height: 130, borderRadius: "50%", border: "1px solid", animation: "pulse-ring 1.8s ease-out infinite 0.6s", zIndex: 0 },
+  waveContainer: { position: "absolute", bottom: -28, display: "flex", alignItems: "flex-end", gap: 3, height: 52 },
+  waveBar: { width: 4, borderRadius: 4, minHeight: 6, animation: "wave 0.8s ease-in-out infinite alternate" },
+  modeLabel: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: 3, marginTop: 18, textAlign: "center" },
+  setTimer: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 80, letterSpacing: 4, color: "var(--white)", lineHeight: 1 },
+  activeHint: { fontSize: 13, color: "var(--gray)" },
+  stopBtn: { background: "transparent", color: "var(--gray)", fontFamily: "'Bebas Neue', sans-serif", fontSize: 12, letterSpacing: 3, padding: "10px 24px", borderRadius: 8, border: "1px solid #252525", marginTop: 4 },
 
+  // Rating overlay (on ActiveScreen)
+  ratingOverlay: { position: "absolute", inset: 0, background: "rgba(5,5,5,0.93)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18, padding: 32, zIndex: 10, backdropFilter: "blur(8px)" },
+  ratingOverlayEyebrow: { fontSize: 9, letterSpacing: 5, color: "var(--gray)", fontFamily: "'Bebas Neue', sans-serif" },
+  ratingOverlayScore: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 52, letterSpacing: 7, lineHeight: 1 },
+  ratingOverlayComment: { fontSize: 16, color: "var(--white)", fontStyle: "italic", textAlign: "center", lineHeight: 1.6, maxWidth: 300 },
+  ratingOverlayHint: { fontSize: 10, color: "var(--gray)", letterSpacing: 3, fontFamily: "'Bebas Neue', sans-serif" },
+
+  // Rest screen
+  restLabel: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 11, letterSpacing: 7, color: "var(--green)", textShadow: "0 0 16px var(--green-glow)" },
+  restTimerWrap: { position: "relative", width: 200, height: 200, display: "flex", alignItems: "center", justifyContent: "center" },
+  restSvg: { position: "absolute", top: 0, left: 0, width: "100%", height: "100%" },
+  restTimerInner: { display: "flex", flexDirection: "column", alignItems: "center", zIndex: 1 },
+  restNumber: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 78, color: "var(--white)", lineHeight: 1 },
+  restUnit: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 10, letterSpacing: 4, color: "var(--gray-light)", marginTop: -4 },
+  restActions: { display: "flex", flexDirection: "column", gap: 12, width: "100%", maxWidth: 380 },
+
+  // Rating card (rest + done screens)
+  ratingCard: { background: "#0d0d0d", border: "1px solid #252525", borderRadius: 14, padding: "16px 24px", textAlign: "center", width: "100%", maxWidth: 380 },
+  ratingLabel: { fontSize: 8, letterSpacing: 4, color: "var(--gray)", marginBottom: 10, fontFamily: "'Bebas Neue', sans-serif" },
+  ratingComment: { fontSize: 13, color: "var(--gray-light)", fontStyle: "italic", marginTop: 8, lineHeight: 1.5 },
+
+  // Done screen
+  doneTitle: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 46, letterSpacing: 4, textAlign: "center" },
+  doneStats: { display: "flex", alignItems: "center", background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: 16, overflow: "hidden", width: "100%", maxWidth: 340 },
+  doneStat: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "18px 12px", gap: 4 },
+  doneStatNum: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: 2, lineHeight: 1 },
+  doneStatLabel: { fontSize: 8, letterSpacing: 2, color: "var(--gray)" },
+  doneStatDivider: { width: 1, height: 48, background: "#1a1a1a" },
+
+  // Schedule
+  scheduleScreen: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 14, padding: "24px 16px", overflowY: "auto" },
   dayList: { display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 420 },
-  dayCard: { background: "#111", border: "1px solid #1e1e1e", borderRadius: 12, overflow: "hidden", transition: "border-color 0.2s" },
+  dayCard: { background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: 12, overflow: "hidden", transition: "border-color 0.2s" },
   dayRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: "none", cursor: "pointer", width: "100%", border: "none" },
   dayLeft: { display: "flex", alignItems: "center", gap: 12 },
   dayRight: { display: "flex", alignItems: "center", gap: 10 },
-  dayNum: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 14, color: "var(--gray)", width: 18, textAlign: "center" },
-  dayName: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: 2 },
-  todayBadge: { fontSize: 9, background: "var(--red)", color: "#fff", padding: "2px 5px", borderRadius: 4, letterSpacing: 1, fontFamily: "'Bebas Neue', sans-serif" },
+  dayNum: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 13, color: "var(--gray)", width: 18, textAlign: "center" },
+  dayName: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 15, letterSpacing: 2 },
+  todayBadge: { fontSize: 8, background: "var(--red)", color: "#fff", padding: "2px 6px", borderRadius: 4, letterSpacing: 1, fontFamily: "'Bebas Neue', sans-serif" },
   trainedBadge: { fontSize: 12, color: "var(--green)", width: 18, textAlign: "center" },
-  muscleTag: { fontSize: 11, padding: "4px 10px", borderRadius: 20, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: 1 },
-
+  muscleTag: { fontSize: 10, padding: "4px 10px", borderRadius: 20, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: 1 },
   musclePickerWrap: { display: "flex", flexWrap: "wrap", gap: 7, padding: "0 14px 14px 14px" },
-  pickPill: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 12, letterSpacing: 1, padding: "6px 12px", borderRadius: 20, cursor: "pointer", transition: "all 0.15s" },
+  pickPill: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 11, letterSpacing: 1, padding: "6px 12px", borderRadius: 20, cursor: "pointer", transition: "all 0.15s" },
 
-  saveBtn: { color: "#fff", fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: 4, padding: "16px", borderRadius: 12, width: "100%", maxWidth: 420, marginTop: 4 },
-
-  // Active screen
-  orbContainer: { position: "relative", width: 160, height: 160, display: "flex", alignItems: "center", justifyContent: "center" },
-  orb: { width: 120, height: 120, borderRadius: "50%", transition: "background 0.3s, box-shadow 0.3s", zIndex: 1 },
-  orbRing: { position: "absolute", width: 120, height: 120, borderRadius: "50%", border: "2px solid", animation: "pulse-ring 1.5s infinite", zIndex: 0 },
-  waveContainer: { position: "absolute", bottom: -24, display: "flex", alignItems: "flex-end", gap: 3, height: 48 },
-  waveBar: { width: 4, borderRadius: 4, minHeight: 8, animation: "wave 0.8s ease-in-out infinite alternate" },
-  modeLabel: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 20, letterSpacing: 3, marginTop: 16, textAlign: "center" },
-  setTimer: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 72, letterSpacing: 4, color: "var(--white)", lineHeight: 1 },
-  activeHint: { fontSize: 14, color: "var(--gray)" },
-  stopBtn: { background: "transparent", color: "var(--gray)", fontFamily: "'Bebas Neue', sans-serif", fontSize: 13, letterSpacing: 3, padding: "10px 24px", borderRadius: 8, border: "1px solid #333", marginTop: 8 },
-
-  // Rest screen
-  restLabel: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 13, letterSpacing: 6, color: "var(--green)" },
-  restTimer: { position: "relative", width: 160, height: 160, display: "flex", alignItems: "center", justifyContent: "center" },
-  restSvg: { position: "absolute", top: 0, left: 0, width: "100%", height: "100%", transform: "rotate(-90deg)" },
-  restTrack: { fill: "none", stroke: "#1e1e1e", strokeWidth: 6 },
-  restProgress: { fill: "none", stroke: "var(--green)", strokeWidth: 6, strokeDasharray: "339.3", transition: "stroke-dashoffset 1s linear", strokeLinecap: "round" },
-  restNumber: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 64, color: "var(--white)", zIndex: 1 },
-  restSub: { fontSize: 14, color: "var(--gray-light)", letterSpacing: 1 },
-  restActions: { display: "flex", flexDirection: "column", gap: 12, width: "100%", maxWidth: 380 },
-  nextBtn: { background: "var(--green)", color: "#000", fontFamily: "'Bebas Neue', sans-serif", fontSize: 24, letterSpacing: 4, padding: "16px", borderRadius: 12 },
-  finishBtn: { background: "transparent", color: "var(--gray-light)", fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: 3, padding: "12px", borderRadius: 8, border: "1px solid #333" },
-
-  // Done screen
-  doneTitle: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 44, letterSpacing: 4, textAlign: "center" },
-  doneSub: { fontSize: 14, color: "var(--gray-light)", textAlign: "center", fontStyle: "italic" },
-  doneStats: { display: "flex", alignItems: "center", background: "#111", border: "1px solid #222", borderRadius: 14, overflow: "hidden", width: "100%", maxWidth: 340 },
-  doneStat: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "18px 12px", gap: 4 },
-  doneStatNum: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: 2, lineHeight: 1 },
-  doneStatLabel: { fontSize: 9, letterSpacing: 2, color: "var(--gray)" },
-  doneStatDivider: { width: 1, height: 48, background: "#222" },
-
-  codeBlock: { background: "#1a1a1a", border: "1px solid #333", borderRadius: 8, padding: "14px 20px", fontSize: 14, color: "var(--green)", fontFamily: "monospace" },
-
-  // Rating overlay (full-screen, appears on ActiveScreen when set is rated)
-  ratingOverlay: {
-    position: "absolute", inset: 0,
-    background: "rgba(0,0,0,0.92)",
-    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-    gap: 16, padding: 32, zIndex: 10,
-    backdropFilter: "blur(6px)",
-  },
-  ratingOverlayEyebrow: {
-    fontSize: 10, letterSpacing: 5, color: "var(--gray)", fontFamily: "'Bebas Neue', sans-serif",
-  },
-  ratingOverlayScore: {
-    fontFamily: "'Bebas Neue', sans-serif", fontSize: 48, letterSpacing: 6, color: "#f59e0b", lineHeight: 1,
-  },
-  ratingOverlayComment: {
-    fontSize: 16, color: "var(--white)", fontStyle: "italic", textAlign: "center",
-    lineHeight: 1.5, maxWidth: 300, marginTop: 4,
-  },
-  ratingOverlayHint: {
-    fontSize: 11, color: "var(--gray)", letterSpacing: 2, marginTop: 8,
-    fontFamily: "'Bebas Neue', sans-serif",
-  },
-
-  // Rating card
-  ratingCard: {
-    background: "#111", border: "1px solid #f59e0b33", borderRadius: 12,
-    padding: "16px 24px", textAlign: "center", width: "100%", maxWidth: 380,
-  },
-  ratingLabel: { fontSize: 9, letterSpacing: 4, color: "var(--gray)", marginBottom: 8, fontFamily: "'Bebas Neue', sans-serif" },
-  ratingComment: { fontSize: 13, color: "var(--gray-light)", fontStyle: "italic", marginTop: 8, lineHeight: 1.5 },
-
-  // History screen
+  // History
   historyScreen: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "20px 16px", overflowY: "auto" },
   historyHeader: { width: "100%", maxWidth: 420, display: "flex", flexDirection: "column", alignItems: "center", gap: 12 },
-  historyStats: { display: "flex", alignItems: "center", background: "#111", border: "1px solid #1e1e1e", borderRadius: 12, overflow: "hidden", width: "100%" },
+  historyStats: { display: "flex", alignItems: "center", background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: 14, overflow: "hidden", width: "100%" },
   hStat: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "14px 8px", gap: 3 },
   hStatNum: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, letterSpacing: 2, lineHeight: 1 },
-  hStatLabel: { fontSize: 8, letterSpacing: 2, color: "var(--gray)" },
-  hStatDiv: { width: 1, height: 40, background: "#222" },
-
+  hStatLabel: { fontSize: 7, letterSpacing: 2, color: "var(--gray)" },
+  hStatDiv: { width: 1, height: 40, background: "#1a1a1a" },
   historyList: { display: "flex", flexDirection: "column", gap: 6, width: "100%", maxWidth: 420 },
-  historyDate: { fontSize: 10, letterSpacing: 3, color: "var(--gray)", fontFamily: "'Bebas Neue', sans-serif", marginTop: 8, marginBottom: 4 },
-  historyRow: {
-    display: "flex", justifyContent: "space-between", alignItems: "flex-start",
-    background: "#111", border: "1px solid #1e1e1e", borderRadius: 10, padding: "12px 14px",
-  },
+  historyDate: { fontSize: 9, letterSpacing: 3, color: "var(--gray)", fontFamily: "'Bebas Neue', sans-serif", marginTop: 8, marginBottom: 4 },
+  historyRow: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", background: "#0d0d0d", border: "1px solid", borderRadius: 10, padding: "12px 14px", transition: "border-color 0.2s" },
   historyLeft: { display: "flex", flexDirection: "column", gap: 3, flex: 1 },
-  historyMuscle: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 13, letterSpacing: 2 },
-  historyExercise: { fontSize: 12, color: "var(--gray-light)" },
-  historyQuote: { fontSize: 11, color: "var(--gray)", fontStyle: "italic", marginTop: 2 },
-  historyRight: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, minWidth: 60 },
-  historyDuration: { fontSize: 9, letterSpacing: 1, fontFamily: "'Bebas Neue', sans-serif" },
+  historyMuscle: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 12, letterSpacing: 2 },
+  historyExercise: { fontSize: 11, color: "var(--gray-light)" },
+  historyQuote: { fontSize: 10, color: "var(--gray)", fontStyle: "italic", marginTop: 2 },
+  historyRight: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5, minWidth: 64 },
+  historyBadge: { fontSize: 8, letterSpacing: 1, fontFamily: "'Bebas Neue', sans-serif", padding: "2px 6px", borderRadius: 4, border: "1px solid" },
+
+  codeBlock: { background: "#0d0d0d", border: "1px solid #252525", borderRadius: 8, padding: "14px 20px", fontSize: 14, color: "var(--green)", fontFamily: "monospace" },
 };
