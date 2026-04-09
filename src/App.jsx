@@ -29,10 +29,10 @@ const DAY_SHORT = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 // ─── Schedule (localStorage) ──────────────────────────────────────────────────
 const DEFAULT_SCHEDULE = { 0: "chest", 1: "back", 2: "legs", 3: "shoulders", 4: "arms", 5: "fullbody", 6: "rest" };
 function loadSchedule() {
-  try { return JSON.parse(localStorage.getItem("goggins_schedule")) || DEFAULT_SCHEDULE; }
+  try { return JSON.parse(localStorage.getItem("beast_schedule")) || DEFAULT_SCHEDULE; }
   catch { return DEFAULT_SCHEDULE; }
 }
-function saveSchedule(s) { localStorage.setItem("goggins_schedule", JSON.stringify(s)); }
+function saveSchedule(s) { localStorage.setItem("beast_schedule", JSON.stringify(s)); }
 
 // ─── Weekly Tracker (localStorage) ───────────────────────────────────────────
 function getWeekKey() {
@@ -43,25 +43,25 @@ function getWeekKey() {
 }
 function getTodayIndex() { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; }
 function loadWeekData() {
-  try { const s = JSON.parse(localStorage.getItem("goggins_week") || "{}"); if (s.week === getWeekKey()) return s.trained; }
+  try { const s = JSON.parse(localStorage.getItem("beast_week") || "{}"); if (s.week === getWeekKey()) return s.trained; }
   catch {}
   return Array(7).fill(false);
 }
 function markTodayTrained() {
   const t = loadWeekData(); t[getTodayIndex()] = true;
-  localStorage.setItem("goggins_week", JSON.stringify({ week: getWeekKey(), trained: t }));
+  localStorage.setItem("beast_week", JSON.stringify({ week: getWeekKey(), trained: t }));
 }
 
 // ─── Set History (localStorage) ──────────────────────────────────────────────
 function loadHistory() {
-  try { return JSON.parse(localStorage.getItem("goggins_history") || "[]"); }
+  try { return JSON.parse(localStorage.getItem("beast_history") || "[]"); }
   catch { return []; }
 }
 function saveSetRecord(record) {
   const history = loadHistory();
   history.unshift(record);
   if (history.length > 200) history.splice(200);
-  localStorage.setItem("goggins_history", JSON.stringify(history));
+  localStorage.setItem("beast_history", JSON.stringify(history));
 }
 
 // ─── Confetti ─────────────────────────────────────────────────────────────────
@@ -169,7 +169,7 @@ function Coach() {
               : `${muscle.label} DAY! ${setNumber > 1 ? `Set ${setNumber}.` : ""} We're doing ${exercise}. ${muscle.reps} reps. Let's go — NOW.`,
           },
         },
-        onConnect: () => console.log("Goggins connected"),
+        onConnect: () => console.log("Beast Buddy connected"),
         onError: (msg) => { console.error(msg); setMicError(`Error: ${msg}`); },
       });
       setScreen("active");
@@ -187,7 +187,7 @@ function Coach() {
     <div style={S.root}>
       <header style={S.header}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={S.logo}>GOGGINS</span>
+          <span style={S.logo}>BEAST BUDDY</span>
           {(screen === "idle" || screen === "schedule" || screen === "history") && (<>
             <button style={S.headerBtn} onClick={() => setScreen(screen === "schedule" ? "idle" : "schedule")} title="Weekly Plan">
               {screen === "schedule" ? "✕" : "📅"}
@@ -350,11 +350,11 @@ function IdleScreen({ muscle, muscleKey, exercise, setNumber, isConnecting, erro
       >
         {isConnecting
           ? <span style={{ animation: "blink 1s infinite" }}>CONNECTING...</span>
-          : isRest ? "TALK TO GOGGINS" : `START SET ${setNumber}`}
+          : isRest ? "TALK TO BEAST BUDDY" : `START SET ${setNumber}`}
       </button>
 
       <button style={S.ghostBtn} onClick={onOpenSchedule}>📅 Edit weekly plan</button>
-      <p style={S.hint}>{isRest ? "Rest day — or talk to Goggins anyway." : `Tap · do your reps · say "Done" to finish`}</p>
+      <p style={S.hint}>{isRest ? "Rest day — or talk to Beast Buddy anyway." : `Tap · do your reps · say "Done" to finish`}</p>
     </div>
   );
 }
@@ -399,7 +399,7 @@ function ActiveScreen({ muscle, exercise, isConnected, isSpeaking, setSeconds, o
         {!isConnected
           ? <span style={{ color: "var(--gray-light)", animation: "blink 1s infinite" }}>CONNECTING...</span>
           : isSpeaking
-            ? <span style={{ color: muscle.color, fontWeight: 800, textShadow: `0 0 20px ${muscle.color}88` }}>GOGGINS IS PUSHING YOU</span>
+            ? <span style={{ color: muscle.color, fontWeight: 800, textShadow: `0 0 20px ${muscle.color}88` }}>BEAST BUDDY IS PUSHING YOU</span>
             : <span style={{ color: "var(--gray-light)" }}>HE'S LISTENING...</span>}
       </div>
 
@@ -411,7 +411,7 @@ function ActiveScreen({ muscle, exercise, isConnected, isSpeaking, setSeconds, o
       {/* Rating overlay */}
       {lastRating && (
         <div style={S.ratingOverlay} className="animate-in">
-          <p style={S.ratingOverlayEyebrow}>GOGGINS RATED THIS SET</p>
+          <p style={S.ratingOverlayEyebrow}>BEAST BUDDY RATED THIS SET</p>
           <div className="rating-pop">
             <Stars rating={lastRating.rating} size={56} />
           </div>
@@ -502,7 +502,7 @@ function RestScreen({ restSeconds, setNumber, lastRating, onNextSet, onFinish, m
       {/* Rating card */}
       {lastRating && (
         <div style={S.ratingCard} className="slide-up">
-          <p style={S.ratingLabel}>GOGGINS RATED THIS SET</p>
+          <p style={S.ratingLabel}>BEAST BUDDY RATED THIS SET</p>
           <Stars rating={lastRating.rating} size={22} />
           {lastRating.comment && <p style={S.ratingComment}>"{lastRating.comment}"</p>}
         </div>
