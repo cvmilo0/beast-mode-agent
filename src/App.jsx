@@ -684,15 +684,15 @@ function Sticker({ text, color, bg, rot, border, style = {} }) {
     <div style={{
       background: bg,
       color,
-      border: `2px solid ${border || bg}`,
-      borderRadius: 6,
-      padding: "8px 10px",
-      fontSize: 11,
+      border: `3px solid ${border || bg}`,
+      borderRadius: 10,
+      padding: "14px 14px",
+      fontSize: 15,
       fontWeight: 800,
-      lineHeight: 1.35,
-      maxWidth: 110,
+      lineHeight: 1.4,
+      maxWidth: 160,
       transform: `rotate(${rot}deg)`,
-      boxShadow: "3px 3px 10px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.15)",
+      boxShadow: "4px 4px 16px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.15)",
       fontFamily: "'Inter', sans-serif",
       letterSpacing: 0.2,
       cursor: "default",
@@ -702,9 +702,9 @@ function Sticker({ text, color, bg, rot, border, style = {} }) {
     }}>
       {/* tape strip on top */}
       <div style={{
-        position: "absolute", top: -8, left: "50%", transform: "translateX(-50%)",
-        width: 36, height: 14, background: "rgba(249,115,22,0.35)",
-        borderRadius: 2, backdropFilter: "blur(2px)",
+        position: "absolute", top: -11, left: "50%", transform: "translateX(-50%)",
+        width: 50, height: 18, background: "rgba(249,115,22,0.4)",
+        borderRadius: 3, backdropFilter: "blur(2px)",
       }} />
       {text}
     </div>
@@ -718,9 +718,9 @@ function Stickers() {
     <>
       {/* Left column */}
       <div style={{
-        position: "fixed", left: 0, top: 0, bottom: 0, width: 130,
+        position: "fixed", left: 0, top: 0, bottom: 0, width: 175,
         display: "flex", flexDirection: "column", justifyContent: "space-evenly",
-        alignItems: "flex-start", padding: "80px 6px 40px 8px",
+        alignItems: "flex-start", padding: "80px 8px 40px 10px",
         pointerEvents: "none", zIndex: 0,
       }}>
         {left.map((i) => (
@@ -730,9 +730,9 @@ function Stickers() {
 
       {/* Right column */}
       <div style={{
-        position: "fixed", right: 0, top: 0, bottom: 0, width: 130,
+        position: "fixed", right: 0, top: 0, bottom: 0, width: 175,
         display: "flex", flexDirection: "column", justifyContent: "space-evenly",
-        alignItems: "flex-end", padding: "80px 8px 40px 6px",
+        alignItems: "flex-end", padding: "80px 10px 40px 8px",
         pointerEvents: "none", zIndex: 0,
       }}>
         {right.map((i) => (
