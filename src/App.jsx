@@ -755,11 +755,11 @@ const S = {
 
   // Dots
   dotsWrap: { display: "flex", flexDirection: "column", alignItems: "center", gap: 3 },
-  dotsRow: { display: "flex", gap: 5 },
+  dotsRow: { display: "flex", gap: 10 },
   dotCol: { display: "flex", flexDirection: "column", alignItems: "center", gap: 2 },
-  dot: { width: 8, height: 8, borderRadius: "50%", transition: "all 0.3s" },
-  dotLabel: { fontSize: 7, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: 0.5 },
-  dotCount: { fontSize: 8, color: "var(--gray)", letterSpacing: 1, fontFamily: "'Bebas Neue', sans-serif" },
+  dot: { width: 16, height: 16, borderRadius: "50%", transition: "all 0.3s" },
+  dotLabel: { fontSize: 12, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: 1 },
+  dotCount: { fontSize: 13, color: "var(--gray)", letterSpacing: 2, fontFamily: "'Bebas Neue', sans-serif" },
 
   // Screens
   screen: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 24, padding: "32px 20px" },
