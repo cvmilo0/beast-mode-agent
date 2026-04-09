@@ -749,8 +749,8 @@ const S = {
 
   // Header
   header: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", borderBottom: "1px solid #1e1e1e", background: "rgba(5,5,5,0.95)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 100 },
-  logo: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: 5, color: "var(--orange)", textShadow: "0 0 24px rgba(249,115,22,0.7)" },
-  setLabel: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: 3, color: "var(--gray-light)", minWidth: 52, textAlign: "right" },
+  logo: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 42, letterSpacing: 6, color: "var(--orange)", textShadow: "0 0 28px rgba(249,115,22,0.8)" },
+  setLabel: { fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, letterSpacing: 4, color: "var(--gray-light)", minWidth: 64, textAlign: "right" },
   headerBtn: { background: "none", color: "var(--gray-light)", fontSize: 16, padding: "4px 9px", borderRadius: 6, border: "1px solid #222", cursor: "pointer" },
 
   // Dots
