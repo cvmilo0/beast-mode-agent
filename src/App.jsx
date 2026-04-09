@@ -115,6 +115,11 @@ function Coach() {
     };
     saveSetRecord(record);
     setLastRating({ rating: record.rating, comment: record.comment });
+    // Auto-end session and go to rest after Goggins finishes speaking
+    setTimeout(async () => {
+      try { await endSession(); } catch {}
+      setScreen("rest");
+    }, 3000);
     return "Rating saved.";
   });
 
@@ -213,6 +218,7 @@ function Coach() {
           muscle={muscle} exercise={exercise}
           isConnected={isConnected} isSpeaking={isSpeaking}
           setSeconds={setSeconds} onEndSet={handleEndSet}
+          lastRating={lastRating}
         />
       )}
       {screen === "rest" && (
@@ -387,11 +393,11 @@ function IdleScreen({ muscle, muscleKey, exercise, setNumber, isConnecting, erro
 }
 
 // ─── Active Screen ────────────────────────────────────────────────────────────
-function ActiveScreen({ muscle, exercise, isConnected, isSpeaking, setSeconds, onEndSet }) {
+function ActiveScreen({ muscle, exercise, isConnected, isSpeaking, setSeconds, onEndSet, lastRating }) {
   const mins = String(Math.floor(setSeconds / 60)).padStart(2, "0");
   const secs = String(setSeconds % 60).padStart(2, "0");
   return (
-    <div style={styles.screen} className="animate-in">
+    <div style={{ ...styles.screen, position: "relative", overflow: "hidden" }} className="animate-in">
       {exercise && (
         <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 13, letterSpacing: 4, color: muscle.color }}>
           {exercise.toUpperCase()} · {muscle.label}
@@ -426,6 +432,21 @@ function ActiveScreen({ muscle, exercise, isConnected, isSpeaking, setSeconds, o
       <div style={styles.setTimer}>{mins}:{secs}</div>
       <p style={styles.activeHint}>Say <strong style={{ color: "var(--white)" }}>"Done"</strong> to end the set</p>
       <button style={styles.stopBtn} onClick={onEndSet}>END SET</button>
+
+      {/* Rating overlay — appears the moment Goggins calls rateSet */}
+      {lastRating && (
+        <div style={styles.ratingOverlay} className="animate-in">
+          <p style={styles.ratingOverlayEyebrow}>GOGGINS RATED THIS SET</p>
+          <Stars rating={lastRating.rating} size={52} />
+          <p style={styles.ratingOverlayScore}>
+            {lastRating.rating >= 5 ? "PERFECT" : lastRating.rating >= 4 ? "STRONG" : lastRating.rating === 3 ? "SOLID" : "WEAK"}
+          </p>
+          {lastRating.comment ? (
+            <p style={styles.ratingOverlayComment}>"{lastRating.comment}"</p>
+          ) : null}
+          <p style={styles.ratingOverlayHint}>Heading to rest...</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -682,6 +703,29 @@ const styles = {
   doneStatDivider: { width: 1, height: 48, background: "#222" },
 
   codeBlock: { background: "#1a1a1a", border: "1px solid #333", borderRadius: 8, padding: "14px 20px", fontSize: 14, color: "var(--green)", fontFamily: "monospace" },
+
+  // Rating overlay (full-screen, appears on ActiveScreen when set is rated)
+  ratingOverlay: {
+    position: "absolute", inset: 0,
+    background: "rgba(0,0,0,0.92)",
+    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+    gap: 16, padding: 32, zIndex: 10,
+    backdropFilter: "blur(6px)",
+  },
+  ratingOverlayEyebrow: {
+    fontSize: 10, letterSpacing: 5, color: "var(--gray)", fontFamily: "'Bebas Neue', sans-serif",
+  },
+  ratingOverlayScore: {
+    fontFamily: "'Bebas Neue', sans-serif", fontSize: 48, letterSpacing: 6, color: "#f59e0b", lineHeight: 1,
+  },
+  ratingOverlayComment: {
+    fontSize: 16, color: "var(--white)", fontStyle: "italic", textAlign: "center",
+    lineHeight: 1.5, maxWidth: 300, marginTop: 4,
+  },
+  ratingOverlayHint: {
+    fontSize: 11, color: "var(--gray)", letterSpacing: 2, marginTop: 8,
+    fontFamily: "'Bebas Neue', sans-serif",
+  },
 
   // Rating card
   ratingCard: {
